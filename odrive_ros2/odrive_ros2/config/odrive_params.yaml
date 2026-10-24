@@ -1,0 +1,22 @@
+odrive_node:
+  ros__parameters:
+    # ODrive axis to control (0 or 1)
+    axis_index: 0
+
+    # Starting control mode: "velocity" | "position" | "torque"
+    control_mode: "velocity"
+
+    # Motor / controller limits
+    vel_limit: 10.0          # turns/second  — hard cap in ODrive firmware
+    current_limit: 10.0      # Amps          — motor phase current limit
+    vel_ramp_rate: 2.0       # turns/s²      — velocity ramp (VEL_RAMP mode)
+
+    # Telemetry publish rate
+    publish_rate_hz: 50.0
+
+    # Leave blank to connect to the first ODrive found,
+    # or specify a hex serial number, e.g. "3068388A3536"
+    odrive_serial_number: ""
+
+    # Automatically call clear_errors() when a non-fatal axis error is detected
+    reconnect_on_error: true
