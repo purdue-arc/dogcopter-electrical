@@ -32,9 +32,7 @@ from odrive.enums import (
 import time
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Helper
-# ──────────────────────────────────────────────────────────────────────────────
 
 CONTROL_MODE_MAP = {
     "velocity": ControlMode.VELOCITY_CONTROL,
@@ -55,7 +53,7 @@ class ODriveNode(Node):
     def __init__(self):
         super().__init__("odrive_node")
 
-        # ── Parameters (override in config/odrive_params.yaml) ──────────────
+        # Parameters (override in config/odrive_params.yaml)
         self.declare_parameter("axis_index",           0)
         self.declare_parameter("control_mode",         "velocity")
         self.declare_parameter("vel_limit",            10.0)     # turns/s
@@ -65,38 +63,36 @@ class ODriveNode(Node):
         self.declare_parameter("reconnect_on_error",   True)
         self.declare_parameter("odrive_serial_number", "")       # blank = first found
 
-        # ── Internal state ───────────────────────────────────────────────────
+        # Internal state
         self.od      = None   # ODrive device handle
         self.axis    = None   # shortcut to the active axis
         self._mode   = self.get_parameter("control_mode").value
         self._estop  = False
 
-        # ── Publishers ───────────────────────────────────────────────────────
+        # Publishers
         self.pub_vel     = self.create_publisher(Float64, "odrive/velocity",    10)
         self.pub_pos     = self.create_publisher(Float64, "odrive/position",    10)
         self.pub_cur     = self.create_publisher(Float64, "odrive/current",     10)
         self.pub_vbus    = self.create_publisher(Float64, "odrive/bus_voltage", 10)
         self.pub_status  = self.create_publisher(String,  "odrive/status",      10)
 
-        # ── Subscribers ──────────────────────────────────────────────────────
+        # Subscribers
         self.create_subscription(Float64, "odrive/velocity_cmd",  self._cb_vel,  10)
         self.create_subscription(Float64, "odrive/position_cmd",  self._cb_pos,  10)
         self.create_subscription(Float64, "odrive/torque_cmd",    self._cb_torq, 10)
         self.create_subscription(String,  "odrive/control_mode",  self._cb_mode, 10)
         self.create_subscription(Bool,    "odrive/estop",         self._cb_estop, 10)
 
-        # ── Connect & configure ──────────────────────────────────────────────
+        # Connect & configure
         self._connect_and_configure()
 
-        # ── Publish timer ────────────────────────────────────────────────────
+        # Publish timer
         rate = self.get_parameter("publish_rate_hz").value
         self.create_timer(1.0 / rate, self._publish_feedback)
 
         self.get_logger().info("ODrive node ready.")
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Connection & configuration
-    # ──────────────────────────────────────────────────────────────────────────
 
     def _connect_and_configure(self):
         serial = self.get_parameter("odrive_serial_number").value or None
@@ -171,9 +167,7 @@ class ODriveNode(Node):
         except Exception:
             pass
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Subscribers
-    # ──────────────────────────────────────────────────────────────────────────
 
     def _cb_vel(self, msg: Float64):
         if self._estop or self.axis is None:
@@ -218,9 +212,7 @@ class ODriveNode(Node):
             self._estop = False
             self._arm()
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Feedback publisher
-    # ──────────────────────────────────────────────────────────────────────────
 
     def _publish_feedback(self):
         if self.axis is None:
@@ -253,9 +245,7 @@ class ODriveNode(Node):
         except Exception as e:
             self.get_logger().warn("Feedback read failed: %s" % str(e))
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Cleanup
-    # ──────────────────────────────────────────────────────────────────────────
 
     def destroy_node(self):
         self.get_logger().info("Shutting down — setting axis IDLE.")
@@ -263,9 +253,7 @@ class ODriveNode(Node):
         super().destroy_node()
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Entry point
-# ──────────────────────────────────────────────────────────────────────────────
 
 def main(args=None):
     rclpy.init(args=args)
